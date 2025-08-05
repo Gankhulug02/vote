@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthButton } from "@/components/AuthButton";
 import { Session } from "next-auth";
+import Image from "next/image";
 
 interface HeaderProps {
   session: Session | null;
@@ -12,9 +13,13 @@ export function Header({ session }: HeaderProps) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-              Y
-            </div>
+            <Image
+              src="https://yt3.googleusercontent.com/tYdDhmfeNIGVord8jkzY1t8sUKas3mvQWybEyPuW8nFZSv2VTkvupkKXhFSj54Db61y_q118=s160-c-k-c0x00ffffff-no-rj"
+              alt="logo"
+              width={28}
+              height={28}
+              className="rounded-full"
+            />
             <span className="text-lg font-medium tracking-tight">
               YoutubeChamp
             </span>
