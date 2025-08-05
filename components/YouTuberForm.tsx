@@ -119,7 +119,7 @@ export default function YouTuberForm({
     } catch (error: Error | unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to save YouTuber";
-      console.error("Error saving YouTuber:", error);
+      console.log("Error saving YouTuber:", error);
       setMessage({
         text: errorMessage,
         type: "error",

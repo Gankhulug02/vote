@@ -55,7 +55,7 @@ export default function YouTuberCard({
       }
     } catch (err) {
       setError("Failed to vote. Please try again.");
-      console.error(err);
+      console.log(err);
     } finally {
       setVoting(false);
     }

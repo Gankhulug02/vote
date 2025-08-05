@@ -135,7 +135,6 @@ export async function createOrUpdateUser(userInfo: {
         email: userInfo.email,
         name: userInfo.name,
         image_url: userInfo.image_url,
-        role: "user", // Default role
       },
       {
         onConflict: "id",
@@ -145,7 +144,7 @@ export async function createOrUpdateUser(userInfo: {
     .single();
 
   if (error) {
-    console.error("Error creating/updating user:", error);
+    console.log("Error creating/updating user:", error);
     return null;
   }
   return data;

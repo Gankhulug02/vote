@@ -48,7 +48,7 @@ export default function AdminYouTuberList({
       setYoutubers((prev) => prev.filter((youtuber) => youtuber.id !== id));
       setMessage({ text: "YouTuber deleted successfully", type: "success" });
     } catch (error) {
-      console.error("Error deleting YouTuber:", error);
+      console.log("Error deleting YouTuber:", error);
       setMessage({ text: "Failed to delete YouTuber", type: "error" });
     } finally {
       setLoading((prev) => ({ ...prev, [id]: false }));
