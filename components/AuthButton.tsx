@@ -31,10 +31,17 @@ export function AuthButton() {
           </div>
         )}
         <div className="flex flex-col items-start">
-          <span className="text-sm font-medium line-clamp-1 max-w-[150px]">
-            {session.user?.name?.split(" ")[0] ||
-              session.user?.email?.split("@")[0]}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium line-clamp-1 max-w-[120px]">
+              {session.user?.name?.split(" ")[0] ||
+                session.user?.email?.split("@")[0]}
+            </span>
+            {session.user?.role === "admin" && (
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                Admin
+              </span>
+            )}
+          </div>
           <Button
             onClick={() => signOut()}
             variant="link"

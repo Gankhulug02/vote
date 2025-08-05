@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import Google from "next-auth/providers/google";
+import { createOrUpdateUser, getUserRole } from "@/lib/supabase";
 
 export const {
   handlers: { GET, POST },
@@ -30,11 +31,24 @@ export const {
       }
       return true;
     },
-    session({ session, token }) {
-      if (session?.user) {
-        // Add user ID to the session using email as ID (since we're using Google Auth)
-        session.user.id = (token.email || token.sub || "") as string;
-        console.log("session", session);
+    async session({ session, token }) {
+      if (session?.user && token.email) {
+        // Add user ID to the session using email as ID
+        session.user.id = token.email as string;
+
+        // Create or update user in database
+        await createOrUpdateUser({
+          id: session.user.id,
+          email: token.email as string,
+          name: session.user.name,
+          image_url: session.user.image,
+        });
+
+        // Get user role and add to session
+        const role = await getUserRole(session.user.id);
+        session.user.role = role || "user";
+
+        console.log("session with role", session);
       }
       return session;
     },
@@ -48,20 +62,35 @@ export const {
 export async function middleware(request: NextRequest) {
   const session = await auth();
 
-  // Define protected paths
-  const protectedPaths = ["/admin"];
+  // Define admin-only paths
+  const adminPaths = ["/admin"];
+  const protectedPaths = ["/protected", "/my-votes"];
 
-  // Check if the current path is protected
+  // Check if the current path requires admin privileges
+  const isAdminPath = adminPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  // Check if the current path requires authentication
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
 
-  // Redirect to signin if trying to access protected route without auth
-  if (!session?.user?.id && isProtectedPath) {
+  // Redirect to signin if trying to access any protected route without auth
+  if (!session?.user?.id && (isAdminPath || isProtectedPath)) {
     const signinUrl = new URL("/signin", request.url);
-    // Add a redirect parameter to return after login
     signinUrl.searchParams.set("callbackUrl", request.nextUrl.href);
     return NextResponse.redirect(signinUrl);
+  }
+
+  // Check admin privileges for admin routes
+  if (isAdminPath && session?.user?.id) {
+    if (session.user.role !== "admin") {
+      // Redirect non-admin users to home page with error
+      const homeUrl = new URL("/", request.url);
+      homeUrl.searchParams.set("error", "insufficient_permissions");
+      return NextResponse.redirect(homeUrl);
+    }
   }
 
   return NextResponse.next();

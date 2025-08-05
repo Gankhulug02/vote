@@ -22,6 +22,17 @@ export type Vote = {
   youtuber_id: string;
 };
 
+export type User = {
+  id: string;
+  created_at: string;
+  email: string;
+  name: string | null;
+  image_url: string | null;
+  role: "admin" | "user";
+};
+
+export type UserRole = "admin" | "user";
+
 // Check if user has already voted for this YouTuber
 export async function hasUserVoted(
   userId: string,
@@ -107,4 +118,84 @@ export async function getUserVotes(userId: string): Promise<string[]> {
 
   if (error) return [];
   return data.map((vote) => vote.youtuber_id);
+}
+
+// User management functions
+export async function createOrUpdateUser(userInfo: {
+  id: string;
+  email: string;
+  name?: string | null;
+  image_url?: string | null;
+}): Promise<User | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .upsert(
+      {
+        id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name,
+        image_url: userInfo.image_url,
+        role: "user", // Default role
+      },
+      {
+        onConflict: "id",
+      }
+    )
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating/updating user:", error);
+    return null;
+  }
+  return data;
+}
+
+export async function getUserById(userId: string): Promise<User | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
+export async function getUserRole(userId: string): Promise<UserRole | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (error) return null;
+  return data.role;
+}
+
+export async function updateUserRole(
+  userId: string,
+  role: UserRole
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("users")
+    .update({ role })
+    .eq("id", userId);
+
+  return !error;
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) return [];
+  return data;
+}
+
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  const role = await getUserRole(userId);
+  return role === "admin";
 }

@@ -49,6 +49,16 @@ export function Header({ session }: HeaderProps) {
                     </Link>
                   </li>
                 )}
+                {session?.user?.role === "admin" && (
+                  <li>
+                    <Link
+                      href="/admin"
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Admin
+                    </Link>
+                  </li>
+                )}
               </ul>
             </nav>
             <AuthButton />

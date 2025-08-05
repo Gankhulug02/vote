@@ -42,6 +42,19 @@ create table votes (
 );
 ```
 
+#### Users Table
+
+```sql
+create table users (
+  id text primary key,
+  created_at timestamp with time zone default now(),
+  email text not null unique,
+  name text,
+  image_url text,
+  role text check (role in ('admin', 'user')) default 'user' not null
+);
+```
+
 #### Increment Vote Count Function
 
 ```sql
@@ -54,6 +67,19 @@ begin
 end;
 $$ language plpgsql;
 ```
+
+#### Setting Up Admin Users
+
+To make a user an admin:
+
+1. The user must first sign in through Google OAuth (this creates their user record)
+2. Update their role in the database:
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
+```
+
+**Important:** The first admin user must be set up manually in the database after they sign in for the first time.
 
 4. Create a `.env.local` file in the root directory with the following variables:
 
