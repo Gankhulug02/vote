@@ -27,6 +27,16 @@ export const {
       }
       return true;
     },
+    session({ session, token }) {
+      if (session?.user) {
+        // Add user ID to the session using email as ID (since we're using Google Auth)
+        session.user.id = token.email || token.sub;
+      }
+      return session;
+    },
+    jwt({ token }) {
+      return token;
+    },
   },
 });
 

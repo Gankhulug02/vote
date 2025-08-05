@@ -3,24 +3,112 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #85c36f;
+  --primary-light: #cae8bd;
+  --primary-lighter: #ddf6d2;
+  --primary-lightest: #ecfae5;
+  --accent: #85c36f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ecfae5;
+    --foreground: #171717;
+    --primary: #6cb153;
+    --primary-light: #85c36f;
+    --accent: #6cb153;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans);
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: -0.011em;
+}
+
+/* Minimalist Styling */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+button,
+a.button {
+  transition: all 0.2s ease;
+}
+
+input,
+textarea,
+select {
+  background-color: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary-light);
+}
+
+/* Minimalist Card */
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Green theme specific */
+.bg-mint {
+  background-color: var(--primary-lightest);
+}
+
+.bg-mint-light {
+  background-color: var(--primary-lighter);
+}
+
+.bg-mint-medium {
+  background-color: var(--primary-light);
+}
+
+.bg-mint-dark {
+  background-color: var(--primary);
+}
+
+.text-mint {
+  color: var(--primary);
+}
+
+.border-mint {
+  border-color: var(--primary-light);
 }

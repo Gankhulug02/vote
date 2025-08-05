@@ -1,12 +1,60 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Authentication Setup
+## Authentication and Database Setup
 
-This project uses NextAuth.js for authentication with Google OAuth. To set up authentication:
+This project uses NextAuth.js for authentication with Google OAuth and Supabase for the database. To set up:
+
+### Google OAuth Setup
 
 1. Create a Google OAuth application in the [Google Cloud Console](https://console.cloud.google.com/)
 2. Set the authorized redirect URI to `http://localhost:3000/api/auth/callback/google`
 3. Copy your Client ID and Client Secret
+
+### Supabase Setup
+
+1. Create a new project at [Supabase](https://supabase.com/)
+2. After project creation, get your project URL and anon key from the API settings
+3. In your Supabase project, set up the following tables:
+
+#### YouTubers Table
+
+```sql
+create table youtubers (
+  id uuid default uuid_generate_v4() primary key,
+  created_at timestamp with time zone default now(),
+  name text not null,
+  channel_url text not null,
+  image_url text,
+  description text,
+  vote_count integer default 0
+);
+```
+
+#### Votes Table
+
+```sql
+create table votes (
+  id uuid default uuid_generate_v4() primary key,
+  created_at timestamp with time zone default now(),
+  user_id text not null,
+  youtuber_id uuid references youtubers(id) on delete cascade not null,
+  unique (user_id, youtuber_id)
+);
+```
+
+#### Increment Vote Count Function
+
+```sql
+create or replace function increment_vote_count(youtuber_id uuid)
+returns void as $$
+begin
+  update youtubers
+  set vote_count = vote_count + 1
+  where id = youtuber_id;
+end;
+$$ language plpgsql;
+```
+
 4. Create a `.env.local` file in the root directory with the following variables:
 
 ```
@@ -17,6 +65,10 @@ NEXTAUTH_SECRET=your_nextauth_secret_here # generate with `openssl rand -base64 
 # Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ## Getting Started
