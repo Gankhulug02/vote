@@ -16,7 +16,7 @@ export const metadata = {
 export default async function EditYouTuber({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const param = await params;
   const session = await auth();
