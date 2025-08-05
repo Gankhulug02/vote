@@ -35,7 +35,7 @@ export default async function Home() {
                 userVotedYoutubers={userVotedYoutubers}
               />
             ) : (
-              <div className="rounded-2xl s bg-primary/5 p-8 flex flex-col items-center justify-center text-center">
+              <div className="rounded-2xl bg-primary/5 p-8 flex flex-col items-center justify-center text-center">
                 <div className="bg-background p-4 rounded-full mb-6 shadow-sm">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
