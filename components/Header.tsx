@@ -16,7 +16,7 @@ export function Header({ session }: HeaderProps) {
               V
             </div>
             <span className="text-lg font-medium tracking-tight">
-              Youtube Champ
+              YoutubeChamp
             </span>
           </Link>
 

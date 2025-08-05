@@ -18,10 +18,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VoteYT - Vote for Your Favorite YouTubers",
+  title: "YoutubeChamp - Vote for Your Favorite YouTubers",
   description: "Support the content creators you love. One vote, one voice.",
   keywords: ["YouTube", "voting", "creators", "content creators"],
-  authors: [{ name: "VoteYT Team" }],
+  authors: [{ name: "YoutubeChamp Team" }],
   viewport: "width=device-width, initial-scale=1",
 };
 
