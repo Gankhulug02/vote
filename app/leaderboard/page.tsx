@@ -1,6 +1,4 @@
-import { auth } from "@/auth";
 import { getYouTubers } from "@/lib/supabase";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LeaderboardTopThree } from "@/components/LeaderboardTopThree";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
@@ -11,7 +9,6 @@ export const metadata = {
 };
 
 export default async function Leaderboard() {
-  const session = await auth();
   const youtubers = await getYouTubers();
 
   // Sort by vote count to ensure top youtubers are first
@@ -25,8 +22,6 @@ export default async function Leaderboard() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header session={session} />
-
       <main className="flex-1">
         <section className="py-12 bg-primary/5">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">

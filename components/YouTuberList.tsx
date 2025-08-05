@@ -34,6 +34,11 @@ export default function YouTuberList({
     );
   }, []);
 
+  // Calculate remaining votes
+  const maxVotes = 3;
+  const usedVotes = votedIds.length;
+  const remainingVotes = maxVotes - usedVotes;
+
   // Filter by search query
   const filteredYoutubers = youtubers.filter((youtuber) =>
     youtuber.name.toLowerCase().includes(debouncedSearch.toLowerCase())
@@ -41,6 +46,46 @@ export default function YouTuberList({
 
   return (
     <div>
+      {/* Vote Counter */}
+      <div className="mb-6 p-4 bg-primary/5 rounded-lg border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-primary"
+            >
+              <path d="M7 10v12"></path>
+              <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+            </svg>
+            <span className="font-medium">Your Votes</span>
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-semibold">
+              {usedVotes} / {maxVotes}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {remainingVotes > 0
+                ? `${remainingVotes} remaining`
+                : "No votes remaining"}
+            </div>
+          </div>
+        </div>
+        {remainingVotes === 0 && (
+          <div className="mt-2 text-sm text-amber-600 bg-amber-50 p-2 rounded">
+            You have used all your votes. You can vote for a maximum of 3
+            YouTubers.
+          </div>
+        )}
+      </div>
+
       <div className="mb-8">
         <div className="relative">
           <svg
@@ -83,6 +128,7 @@ export default function YouTuberList({
               key={youtuber.id}
               youtuber={youtuber}
               hasVoted={votedIds.includes(youtuber.id)}
+              hasReachedVoteLimit={remainingVotes === 0}
               onVote={handleVote}
             />
           ))}

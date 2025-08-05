@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { getYouTubers, getUserVotes } from "@/lib/supabase";
 import { AuthButton } from "@/components/AuthButton";
 import YouTuberList from "@/components/YouTuberList";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 export default async function Home() {
@@ -16,8 +15,6 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header session={session} />
-
       <main className="flex-1">
         <section className="py-12 bg-primary/5">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">

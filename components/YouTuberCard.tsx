@@ -17,12 +17,14 @@ import { useRouter } from "next/navigation";
 interface YouTuberCardProps {
   youtuber: YouTuber;
   hasVoted: boolean;
+  hasReachedVoteLimit: boolean;
   onVote: (id: string) => void;
 }
 
 export default function YouTuberCard({
   youtuber,
   hasVoted,
+  hasReachedVoteLimit,
   onVote,
 }: YouTuberCardProps) {
   const { data: session } = useSession();
@@ -45,8 +47,12 @@ export default function YouTuberCard({
     setError("");
 
     try {
-      await voteForYouTuber(session.user.id, youtuber.id);
-      onVote(youtuber.id);
+      const result = await voteForYouTuber(session.user.id, youtuber.id);
+      if (result.success) {
+        onVote(youtuber.id);
+      } else {
+        setError(result.error || "Failed to vote. Please try again.");
+      }
     } catch (err) {
       setError("Failed to vote. Please try again.");
       console.error(err);
@@ -113,12 +119,22 @@ export default function YouTuberCard({
 
         <Button
           onClick={handleVote}
-          disabled={hasVoted || voting}
+          disabled={hasVoted || voting || (!hasVoted && hasReachedVoteLimit)}
           size="sm"
           variant={hasVoted ? "outline" : "default"}
-          className={hasVoted ? "pointer-events-none" : ""}
+          className={
+            hasVoted || (!hasVoted && hasReachedVoteLimit)
+              ? "pointer-events-none"
+              : ""
+          }
         >
-          {voting ? "Voting..." : hasVoted ? "Voted" : "Vote"}
+          {voting
+            ? "Voting..."
+            : hasVoted
+            ? "Voted"
+            : hasReachedVoteLimit
+            ? "Vote Limit Reached"
+            : "Vote"}
         </Button>
       </CardFooter>
 

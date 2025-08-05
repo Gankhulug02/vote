@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import YouTuberForm from "@/components/YouTuberForm";
 import { getYouTuber } from "@/lib/supabase";
@@ -36,8 +35,6 @@ export default async function EditYouTuber({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header session={session} />
-
       <main className="flex-1">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">

@@ -15,7 +15,9 @@ export function Header({ session }: HeaderProps) {
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
               V
             </div>
-            <span className="text-lg font-medium tracking-tight">VoteYT</span>
+            <span className="text-lg font-medium tracking-tight">
+              Youtube Champ
+            </span>
           </Link>
 
           <div className="flex items-center gap-8">

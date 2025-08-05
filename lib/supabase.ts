@@ -65,24 +65,37 @@ export async function getYouTuber(id: string): Promise<YouTuber | null> {
 export async function voteForYouTuber(
   userId: string,
   youtuberId: string
-): Promise<boolean> {
-  // Check if already voted
+): Promise<{ success: boolean; error?: string }> {
+  // Check if already voted for this specific YouTuber
   const alreadyVoted = await hasUserVoted(userId, youtuberId);
-  if (alreadyVoted) return false;
+  if (alreadyVoted)
+    return {
+      success: false,
+      error: "You have already voted for this YouTuber",
+    };
+
+  // Check if user has reached the 3-vote limit
+  const userVotes = await getUserVotes(userId);
+  if (userVotes.length >= 3) {
+    return { success: false, error: "You have reached the maximum of 3 votes" };
+  }
 
   // Add vote and increment vote_count
   const { error: voteError } = await supabase
     .from("votes")
     .insert([{ user_id: userId, youtuber_id: youtuberId }]);
 
-  if (voteError) return false;
+  if (voteError) return { success: false, error: "Failed to save vote" };
 
   // Update the vote count
   const { error: updateError } = await supabase.rpc("increment_vote_count", {
     youtuber_id: youtuberId,
   });
 
-  return !updateError;
+  if (updateError)
+    return { success: false, error: "Failed to update vote count" };
+
+  return { success: true };
 }
 
 // Get user's votes
