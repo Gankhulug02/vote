@@ -8,7 +8,7 @@ const ADMIN_EMAILS = ["huluguu0202@gmail.com"]; // Replace with actual admin ema
 
 export const metadata = {
   title: "Add YouTuber - Admin Dashboard",
-  description: "Add a new YouTuber to the VoteYT platform",
+  description: "Add a new YouTuber to the YoutubeChamp platform",
 };
 
 export default async function AddYouTuber() {

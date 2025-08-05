@@ -7,8 +7,8 @@ import { VotedYouTuberCard } from "@/components/VotedYouTuberCard";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "My Votes - VoteYT",
-  description: "See content creators you've supported on VoteYT",
+  title: "My Votes - YoutubeChamp",
+  description: "See content creators you've supported on YoutubeChamp",
 };
 
 export default async function MyVotes() {

@@ -13,7 +13,7 @@ export function Header({ session }: HeaderProps) {
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-              V
+              Y
             </div>
             <span className="text-lg font-medium tracking-tight">
               YoutubeChamp

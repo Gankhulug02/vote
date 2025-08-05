@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata = {
-  title: "Admin Dashboard - VoteYT",
-  description: "Admin dashboard for managing YouTubers and users on VoteYT",
+  title: "Admin Dashboard - YoutubeChamp",
+  description:
+    "Admin dashboard for managing YouTubers and users on YoutubeChamp",
 };
 
 export default async function AdminPage() {

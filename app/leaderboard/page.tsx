@@ -4,8 +4,8 @@ import { LeaderboardTopThree } from "@/components/LeaderboardTopThree";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 
 export const metadata = {
-  title: "Leaderboard - VoteYT",
-  description: "See who's leading the competition right now on VoteYT",
+  title: "Leaderboard - YoutubeChamp",
+  description: "See who's leading the competition right now on YoutubeChamp",
 };
 
 export default async function Leaderboard() {
