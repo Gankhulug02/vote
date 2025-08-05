@@ -24,7 +24,6 @@ export const {
       const isOnProtectedPage = protectedPaths.some((path) =>
         nextUrl.pathname.startsWith(path)
       );
-
       if (isOnProtectedPage) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
@@ -46,14 +45,11 @@ export const {
 });
 
 // Middleware to protect routes
-export function middleware(request: NextRequest) {
-  // Check for auth cookie - try both secure and non-secure versions (for local dev)
-  const token =
-    request.cookies.get("__Secure-next-auth.session-token")?.value ||
-    request.cookies.get("next-auth.session-token")?.value;
+export async function middleware(request: NextRequest) {
+  const session = await auth();
 
   // Define protected paths
-  const protectedPaths = ["testestet"];
+  const protectedPaths = ["/admin"];
 
   // Check if the current path is protected
   const isProtectedPath = protectedPaths.some((path) =>
@@ -61,7 +57,7 @@ export function middleware(request: NextRequest) {
   );
 
   // Redirect to signin if trying to access protected route without auth
-  if (!token && isProtectedPath) {
+  if (!session?.user?.id && isProtectedPath) {
     const signinUrl = new URL("/signin", request.url);
     // Add a redirect parameter to return after login
     signinUrl.searchParams.set("callbackUrl", request.nextUrl.href);

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { AuthButton } from "@/components/AuthButton";
+import { Session } from "next-auth";
 
 interface HeaderProps {
-  session: any | null;
+  session: Session | null;
 }
 
 export function Header({ session }: HeaderProps) {

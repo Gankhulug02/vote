@@ -27,7 +27,7 @@ export default function ShadcnServerPage() {
           <p className="text-muted-foreground">
             Not all components can be used directly in server components.
             Components that use React hooks or client-side interactions need the
-            "use client" directive.
+            &quot;use client&quot; directive.
           </p>
         </CardContent>
         <CardFooter className="flex justify-between">

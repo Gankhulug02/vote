@@ -23,7 +23,7 @@ export default async function MyVotes() {
   // Get all YouTubers and user votes in parallel
   const [allYoutubers, userVotedIds] = await Promise.all([
     getYouTubers(),
-    getUserVotes(session.user.id),
+    getUserVotes(session.user.id as string),
   ]);
 
   // Filter to only show YouTubers the user has voted for
@@ -42,7 +42,7 @@ export default async function MyVotes() {
               My Votes
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Content creators you've supported
+              Content creators you&apos;ve supported
             </p>
           </div>
         </section>
@@ -71,8 +71,8 @@ export default async function MyVotes() {
                 </div>
                 <h2 className="text-2xl font-semibold mb-4">No Votes Yet</h2>
                 <p className="text-muted-foreground mb-6 max-w-md">
-                  You haven't voted for any YouTubers yet. Visit the home page
-                  to cast your votes!
+                  You haven&apos;t voted for any YouTubers yet. Visit the home
+                  page to cast your votes!
                 </p>
                 <Button asChild>
                   <Link href="/">Vote Now</Link>

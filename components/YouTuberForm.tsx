@@ -116,10 +116,12 @@ export default function YouTuberForm({
         // Navigate back to admin page after 1.5 seconds
         setTimeout(() => router.push("/admin"), 1500);
       }
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to save YouTuber";
       console.error("Error saving YouTuber:", error);
       setMessage({
-        text: error.message || "Failed to save YouTuber",
+        text: errorMessage,
         type: "error",
       });
     } finally {
