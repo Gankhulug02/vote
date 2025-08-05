@@ -82,7 +82,7 @@ export default function YouTuberCard({
   };
 
   return (
-    <Card className="group relative overflow-hidden transition-all duration-300 ease-out h-full hover:shadow-soft p-0 hover:-translate-y-1 bg-gradient-to-b from-white via-white to-gray-50/30">
+    <Card className="group relative overflow-hidden transition-all duration-300 ease-out h-full hover:shadow-soft gap-0 pt-0  hover:-translate-y-1 bg-gradient-to-b from-white via-white to-gray-50/30">
       {/* Premium badge for top voted */}
       {youtuber.vote_count > 50 && (
         <div className="absolute top-4 right-4 z-20 bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm">
