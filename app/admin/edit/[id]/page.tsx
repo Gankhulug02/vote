@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import YouTuberForm from "@/components/YouTuberForm";
@@ -19,6 +18,7 @@ export default async function EditYouTuber({
 }: {
   params: { id: string };
 }) {
+  const param = await params;
   const session = await auth();
 
   // Check if user is authenticated and has admin rights
@@ -27,7 +27,7 @@ export default async function EditYouTuber({
   }
 
   // Get the YouTuber data
-  const youtuber = await getYouTuber(params.id);
+  const youtuber = await getYouTuber(param.id as string);
 
   // If YouTuber not found, redirect to admin page
   if (!youtuber) {
