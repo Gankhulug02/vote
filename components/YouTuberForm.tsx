@@ -1,14 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import type { YouTuber } from "@/lib/supabase";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface YouTuberFormProps {
   youtuber?: YouTuber;
   isEditing?: boolean;
 }
+
+// Form validation schema
+const formSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }),
+  channel_url: z
+    .string()
+    .min(1, { message: "Channel URL is required" })
+    .url({ message: "Please enter a valid URL" }),
+  image_url: z
+    .string()
+    .url({ message: "Please enter a valid URL" })
+    .optional()
+    .or(z.literal("")),
+  description: z.string().optional().or(z.literal("")),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function YouTuberForm({
   youtuber,
@@ -21,62 +55,32 @@ export default function YouTuberForm({
     type: "success" | "error";
   } | null>(null);
 
-  // Form fields
-  const [formData, setFormData] = useState({
-    name: youtuber?.name || "",
-    channel_url: youtuber?.channel_url || "",
-    image_url: youtuber?.image_url || "",
-    description: youtuber?.description || "",
+  // Initialize form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: youtuber?.name || "",
+      channel_url: youtuber?.channel_url || "",
+      image_url: youtuber?.image_url || "",
+      description: youtuber?.description || "",
+    },
   });
 
-  // Handle form input changes
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormValues) => {
     setLoading(true);
     setMessage(null);
 
     try {
-      // Basic validation
-      if (!formData.name.trim() || !formData.channel_url.trim()) {
-        throw new Error("Name and Channel URL are required");
-      }
-
-      // Check if the channel URL is valid
-      try {
-        new URL(formData.channel_url);
-      } catch {
-        throw new Error("Please enter a valid URL for the channel");
-      }
-
-      // Check if image URL is valid (if provided)
-      if (formData.image_url && formData.image_url.trim() !== "") {
-        try {
-          new URL(formData.image_url);
-        } catch {
-          throw new Error("Please enter a valid URL for the image");
-        }
-      }
-
       if (isEditing && youtuber) {
         // Update existing YouTuber
         const { error } = await supabase
           .from("youtubers")
           .update({
-            name: formData.name,
-            channel_url: formData.channel_url,
-            image_url: formData.image_url || null,
-            description: formData.description || null,
+            name: data.name,
+            channel_url: data.channel_url,
+            image_url: data.image_url || null,
+            description: data.description || null,
           })
           .eq("id", youtuber.id);
 
@@ -84,23 +88,23 @@ export default function YouTuberForm({
 
         setMessage({ text: "YouTuber updated successfully!", type: "success" });
 
-        // Navigate back to admin page after 2 seconds
-        setTimeout(() => router.push("/admin"), 2000);
+        // Navigate back to admin page after 1.5 seconds
+        setTimeout(() => router.push("/admin"), 1500);
       } else {
         // Add new YouTuber
         const { error } = await supabase.from("youtubers").insert([
           {
-            name: formData.name,
-            channel_url: formData.channel_url,
-            image_url: formData.image_url || null,
-            description: formData.description || null,
+            name: data.name,
+            channel_url: data.channel_url,
+            image_url: data.image_url || null,
+            description: data.description || null,
           },
         ]);
 
         if (error) throw error;
 
-        // Reset form and show success message
-        setFormData({
+        // Reset form
+        form.reset({
           name: "",
           channel_url: "",
           image_url: "",
@@ -109,8 +113,8 @@ export default function YouTuberForm({
 
         setMessage({ text: "YouTuber added successfully!", type: "success" });
 
-        // Navigate back to admin page after 2 seconds
-        setTimeout(() => router.push("/admin"), 2000);
+        // Navigate back to admin page after 1.5 seconds
+        setTimeout(() => router.push("/admin"), 1500);
       }
     } catch (error: any) {
       console.error("Error saving YouTuber:", error);
@@ -124,119 +128,110 @@ export default function YouTuberForm({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+    <div>
       {message && (
-        <div
-          className={`mb-6 p-4 rounded-md ${
-            message.type === "success"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
+        <Alert
+          variant={message.type === "success" ? "default" : "destructive"}
+          className="mb-6"
         >
-          {message.text}
-        </div>
+          <AlertTitle>
+            {message.type === "success" ? "Success" : "Error"}
+          </AlertTitle>
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
             name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Enter YouTuber name"
-            required
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter YouTuber name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div className="mb-4">
-          <label
-            htmlFor="channel_url"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Channel URL <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="url"
-            id="channel_url"
+          <FormField
+            control={form.control}
             name="channel_url"
-            value={formData.channel_url}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="https://youtube.com/channel/..."
-            required
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Channel URL</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="https://youtube.com/channel/..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div className="mb-4">
-          <label
-            htmlFor="image_url"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Image URL
-          </label>
-          <input
-            type="url"
-            id="image_url"
+          <FormField
+            control={form.control}
             name="image_url"
-            value={formData.image_url}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="https://example.com/image.jpg"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image URL</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="https://example.com/image.jpg"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Leave empty to use a default image
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Leave empty to use a default image
-          </p>
-        </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Description
-          </label>
-          <textarea
-            id="description"
+          <FormField
+            control={form.control}
             name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={4}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Enter a description for this YouTuber..."
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={4}
+                    placeholder="Enter a description for this YouTuber..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50"
-          >
-            {loading
-              ? "Saving..."
-              : isEditing
-              ? "Update YouTuber"
-              : "Add YouTuber"}
-          </button>
+          <div className="flex gap-4">
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading
+                ? "Saving..."
+                : isEditing
+                ? "Update YouTuber"
+                : "Add YouTuber"}
+            </Button>
 
-          <button
-            type="button"
-            onClick={() => router.push("/admin")}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/admin")}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

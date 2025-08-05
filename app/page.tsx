@@ -1,74 +1,30 @@
 import { auth } from "@/auth";
 import { getYouTubers, getUserVotes } from "@/lib/supabase";
 import { AuthButton } from "@/components/AuthButton";
-import Link from "next/link";
 import YouTuberList from "@/components/YouTuberList";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export default async function Home() {
   const session = await auth();
-  const youtubers = await getYouTubers();
 
-  // Get user votes if logged in
-  const userVotedYoutubers = session?.user?.id
-    ? await getUserVotes(session.user.id)
-    : [];
+  // Fetch data in parallel for better performance
+  const [youtubers, userVotedYoutubers] = await Promise.all([
+    getYouTubers(),
+    session?.user?.id ? getUserVotes(session.user.id) : [],
+  ]);
 
   return (
-    <div className="font-sans min-h-screen bg-white">
-      <header className="bg-white py-4 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">
-                V
-              </div>
-              <span className="text-lg font-medium tracking-tight">VoteYT</span>
-            </Link>
+    <div className="flex flex-col min-h-screen">
+      <Header session={session} />
 
-            <div className="flex items-center gap-8">
-              <nav className="hidden md:block">
-                <ul className="flex gap-8">
-                  <li>
-                    <Link
-                      href="/"
-                      className="text-gray-800 hover:text-primary-500 font-medium"
-                    >
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/leaderboard"
-                      className="text-gray-500 hover:text-primary-500"
-                    >
-                      Leaderboard
-                    </Link>
-                  </li>
-                  {session?.user && (
-                    <li>
-                      <Link
-                        href="/my-votes"
-                        className="text-gray-500 hover:text-primary-500"
-                      >
-                        My Votes
-                      </Link>
-                    </li>
-                  )}
-                </ul>
-              </nav>
-              <AuthButton />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main>
-        <section className="py-12 bg-primary-50">
+      <main className="flex-1">
+        <section className="py-12 bg-primary/5">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
             <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">
               Vote for Your Favorite YouTubers
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Support the content creators you love. One vote, one voice.
             </p>
           </div>
@@ -82,8 +38,8 @@ export default async function Home() {
                 userVotedYoutubers={userVotedYoutubers}
               />
             ) : (
-              <div className="rounded-2xl bg-primary-100 p-8 flex flex-col items-center justify-center text-center">
-                <div className="bg-white p-4 rounded-full mb-6">
+              <div className="rounded-2xl bg-primary/5 p-8 flex flex-col items-center justify-center text-center">
+                <div className="bg-background p-4 rounded-full mb-6 shadow-sm">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="36"
@@ -94,7 +50,7 @@ export default async function Home() {
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-primary-500"
+                    className="text-primary"
                   >
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                     <polyline points="10 17 15 12 10 7"></polyline>
@@ -102,7 +58,7 @@ export default async function Home() {
                   </svg>
                 </div>
                 <h2 className="text-2xl font-semibold mb-4">Sign In to Vote</h2>
-                <p className="text-gray-600 mb-6 max-w-md">
+                <p className="text-muted-foreground mb-6 max-w-md">
                   Join the community and cast your vote for your favorite
                   content creators.
                 </p>
@@ -113,20 +69,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className="bg-white mt-10 py-8 border-t border-primary-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center mb-4 md:mb-0">
-            <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold mr-2">
-              V
-            </div>
-            <span className="text-lg font-medium">VoteYT</span>
-          </div>
-
-          <p className="text-sm text-gray-500">
-            © {new Date().getFullYear()} VoteYT. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

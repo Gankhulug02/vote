@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import YouTuberCard from "./YouTuberCard";
 import type { YouTuber } from "@/lib/supabase";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface YouTuberListProps {
   youtubers: YouTuber[];
@@ -16,9 +18,10 @@ export default function YouTuberList({
   const [youtubers, setYoutubers] = useState(initialYoutubers);
   const [votedIds, setVotedIds] = useState<string[]>(userVotedYoutubers);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   // Handle successful vote
-  const handleVote = (youtuberId: string) => {
+  const handleVote = useCallback((youtuberId: string) => {
     setVotedIds((prev) => [...prev, youtuberId]);
 
     // Update local vote count for immediate UI update
@@ -29,11 +32,11 @@ export default function YouTuberList({
           : youtuber
       )
     );
-  };
+  }, []);
 
   // Filter by search query
   const filteredYoutubers = youtubers.filter((youtuber) =>
-    youtuber.name.toLowerCase().includes(searchQuery.toLowerCase())
+    youtuber.name.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   return (
@@ -50,24 +53,26 @@ export default function YouTuberList({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-400"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
           >
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.3-4.3"></path>
           </svg>
-          <input
+          <Input
             type="text"
             placeholder="Search YouTubers..."
-            className="w-full pl-10 pr-4 py-3 bg-white border border-primary-100 rounded-lg shadow-sm focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-200"
+            className="pl-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search YouTubers"
           />
         </div>
       </div>
 
       {filteredYoutubers.length === 0 ? (
-        <div className="text-center py-12 bg-primary-50 rounded-lg">
-          <p className="text-primary-700">
+        <div className="text-center py-12 bg-primary/5 rounded-lg">
+          <p className="text-muted-foreground">
             No YouTubers found matching your search.
           </p>
         </div>

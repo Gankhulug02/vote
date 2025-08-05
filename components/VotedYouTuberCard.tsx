@@ -1,62 +1,23 @@
-"use client";
-
-import { useState } from "react";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { voteForYouTuber } from "@/lib/supabase";
-import type { YouTuber } from "@/lib/supabase";
 import {
   Card,
   CardContent,
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
-interface YouTuberCardProps {
-  youtuber: YouTuber;
-  hasVoted: boolean;
-  onVote: (id: string) => void;
+interface YouTuber {
+  id: string;
+  name: string;
+  image_url: string;
+  channel_url: string;
+  description?: string;
+  vote_count: number;
 }
 
-export default function YouTuberCard({
-  youtuber,
-  hasVoted,
-  onVote,
-}: YouTuberCardProps) {
-  const { data: session } = useSession();
-  const [voting, setVoting] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-
-  const handleVote = async () => {
-    if (!session?.user?.id) {
-      router.push("/signin");
-      return;
-    }
-
-    if (hasVoted) {
-      setError("You have already voted for this YouTuber");
-      return;
-    }
-
-    setVoting(true);
-    setError("");
-
-    try {
-      await voteForYouTuber(session.user.id, youtuber.id);
-      onVote(youtuber.id);
-    } catch (err) {
-      setError("Failed to vote. Please try again.");
-      console.error(err);
-    } finally {
-      setVoting(false);
-    }
-  };
-
+export function VotedYouTuberCard({ youtuber }: { youtuber: YouTuber }) {
   return (
-    <Card className="overflow-hidden transition-all h-full hover:shadow-md">
+    <Card className="overflow-hidden transition-all hover:shadow-md">
       <div className="aspect-video relative">
         <Image
           src={
@@ -91,7 +52,7 @@ export default function YouTuberCard({
         </CardContent>
       )}
 
-      <CardFooter className="flex items-center justify-between mt-auto pt-4 border-t">
+      <CardFooter className="flex items-center justify-between mt-2 pt-4 border-t">
         <div className="flex items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -103,7 +64,7 @@ export default function YouTuberCard({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-primary/70 mr-1"
+            className="text-muted-foreground mr-1"
           >
             <path d="M7 10v12"></path>
             <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
@@ -111,22 +72,10 @@ export default function YouTuberCard({
           <span className="font-medium">{youtuber.vote_count}</span>
         </div>
 
-        <Button
-          onClick={handleVote}
-          disabled={hasVoted || voting}
-          size="sm"
-          variant={hasVoted ? "outline" : "default"}
-          className={hasVoted ? "pointer-events-none" : ""}
-        >
-          {voting ? "Voting..." : hasVoted ? "Voted" : "Vote"}
-        </Button>
+        <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+          Voted
+        </span>
       </CardFooter>
-
-      {error && (
-        <div className="px-6 pb-4">
-          <p className="text-destructive text-xs">{error}</p>
-        </div>
-      )}
     </Card>
   );
 }

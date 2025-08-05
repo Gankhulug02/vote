@@ -2,12 +2,18 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getYouTubers } from "@/lib/supabase";
-import Image from "next/image";
-import { AuthButton } from "@/components/AuthButton";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import AdminYouTuberList from "@/components/AdminYouTuberList";
+import { Button } from "@/components/ui/button";
 
 // List of admin emails
 const ADMIN_EMAILS = ["huluguu0202@gmail.com"]; // Replace with actual admin email
+
+export const metadata = {
+  title: "Admin Dashboard - VoteYT",
+  description: "Admin dashboard for managing YouTubers on VoteYT",
+};
 
 export default async function AdminPage() {
   const session = await auth();
@@ -20,56 +26,28 @@ export default async function AdminPage() {
   const youtubers = await getYouTubers();
 
   return (
-    <div className="font-sans min-h-screen">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Image
-              className="dark:invert"
-              src="/next.svg"
-              alt="Next.js logo"
-              width={120}
-              height={25}
-              priority
-            />
-            <span className="text-lg font-bold">YouTuber Voting - Admin</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <nav>
-              <ul className="flex gap-6">
-                <li>
-                  <Link
-                    href="/"
-                    className="text-gray-700 hover:text-primary-600"
-                  >
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/admin" className="text-primary-600 font-bold">
-                    Admin
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-            <AuthButton />
-          </div>
-        </div>
-      </header>
+    <div className="flex flex-col min-h-screen">
+      <Header session={session} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Manage YouTubers</h1>
-          <Link
-            href="/admin/add"
-            className="px-5 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
-          >
-            Add New YouTuber
-          </Link>
-        </div>
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold">Manage YouTubers</h1>
+              <p className="text-muted-foreground mt-1">
+                Add, edit, or remove content creators from the platform
+              </p>
+            </div>
+            <Button asChild>
+              <Link href="/admin/add">Add New YouTuber</Link>
+            </Button>
+          </div>
 
-        <AdminYouTuberList youtubers={youtubers} />
+          <AdminYouTuberList youtubers={youtubers} />
+        </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

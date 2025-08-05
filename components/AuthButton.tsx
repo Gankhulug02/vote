@@ -2,6 +2,7 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export function AuthButton() {
   const { data: session, status } = useSession();
@@ -9,12 +10,9 @@ export function AuthButton() {
 
   if (isLoading) {
     return (
-      <button
-        className="bg-primary-50 rounded-full py-2 px-4 flex items-center justify-center text-sm font-medium opacity-70"
-        disabled
-      >
+      <Button variant="outline" disabled className="gap-2">
         <div className="animate-pulse h-5 w-24 bg-primary-100 rounded"></div>
-      </button>
+      </Button>
     );
   }
 
@@ -37,22 +35,20 @@ export function AuthButton() {
             {session.user?.name?.split(" ")[0] ||
               session.user?.email?.split("@")[0]}
           </span>
-          <button
+          <Button
             onClick={() => signOut()}
-            className="text-xs text-primary-600 hover:text-primary-700"
+            variant="link"
+            className="h-auto p-0 text-xs"
           >
             Sign out
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <button
-      onClick={() => signIn("google")}
-      className="bg-primary-500 hover:bg-primary-600 text-white rounded-full py-2 px-5 flex items-center justify-center text-sm font-medium transition-colors"
-    >
+    <Button onClick={() => signIn("google")} className="rounded-full">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="16"
@@ -63,13 +59,12 @@ export function AuthButton() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="mr-2"
       >
         <path d="M15 3h6v6"></path>
         <path d="M10 14 21 3"></path>
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
       </svg>
       Sign in
-    </button>
+    </Button>
   );
 }

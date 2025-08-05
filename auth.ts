@@ -20,7 +20,11 @@ export const {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnProtectedPage = nextUrl.pathname.startsWith("/protected");
+      const protectedPaths = ["/protected", "/my-votes", "/admin"];
+      const isOnProtectedPage = protectedPaths.some((path) =>
+        nextUrl.pathname.startsWith(path)
+      );
+
       if (isOnProtectedPage) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
@@ -30,7 +34,8 @@ export const {
     session({ session, token }) {
       if (session?.user) {
         // Add user ID to the session using email as ID (since we're using Google Auth)
-        session.user.id = token.email || token.sub;
+        session.user.id = (token.email || token.sub || "") as string;
+        console.log("session", session);
       }
       return session;
     },
@@ -42,10 +47,25 @@ export const {
 
 // Middleware to protect routes
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("__Secure-next-auth.session-token")?.value;
+  // Check for auth cookie - try both secure and non-secure versions (for local dev)
+  const token =
+    request.cookies.get("__Secure-next-auth.session-token")?.value ||
+    request.cookies.get("next-auth.session-token")?.value;
 
-  if (!token && request.nextUrl.pathname.startsWith("/protected")) {
-    return NextResponse.redirect(new URL("/signin", request.url));
+  // Define protected paths
+  const protectedPaths = ["testestet"];
+
+  // Check if the current path is protected
+  const isProtectedPath = protectedPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  // Redirect to signin if trying to access protected route without auth
+  if (!token && isProtectedPath) {
+    const signinUrl = new URL("/signin", request.url);
+    // Add a redirect parameter to return after login
+    signinUrl.searchParams.set("callbackUrl", request.nextUrl.href);
+    return NextResponse.redirect(signinUrl);
   }
 
   return NextResponse.next();
