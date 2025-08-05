@@ -71,8 +71,8 @@ export default function YouTuberCard({
       );
     }
     if (hasVoted) return "✓ Voted";
-    if (hasReachedVoteLimit) return "Vote Limit Reached";
-    return "Vote";
+    if (hasReachedVoteLimit) return "Vote";
+    return <span className="text-primary">Vote</span>;
   };
 
   const getButtonVariant = () => {
@@ -225,8 +225,8 @@ export default function YouTuberCard({
                   hasVoted
                     ? "bg-gradient-to-r from-primary-50 to-primary-100 text-primary-700 border-2 border-primary-200 hover:from-primary-100 hover:to-primary-150 shadow-md"
                     : hasReachedVoteLimit
-                    ? "bg-gray-100 text-gray-500 cursor-not-allowed border border-gray-200"
-                    : "bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white shadow-lg hover:shadow-xl active:scale-95 border-2 border-primary-600 hover:border-primary-700"
+                    ? "bg-gray-100  cursor-not-allowed border border-gray-200"
+                    : "bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-gray-500 hover:shadow-xl active:scale-95 border-2 border-primary-600 hover:border-primary-700"
                 }
                 ${voting ? "cursor-not-allowed" : ""}
                 rounded-xl relative overflow-hidden

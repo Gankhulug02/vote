@@ -30,6 +30,8 @@ export default async function MyVotes() {
     userVotedIds.includes(youtuber.id)
   );
 
+  console.log("votedYoutubers", votedYoutubers);
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">

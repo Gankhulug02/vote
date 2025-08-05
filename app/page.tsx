@@ -13,6 +13,8 @@ export default async function Home() {
     session?.user?.id ? getUserVotes(session.user.id) : [],
   ]);
 
+  console.log("asdasdasd", youtubers);
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">

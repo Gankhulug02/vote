@@ -33,6 +33,23 @@ export type Vote = {
   youtuber_id: string;
 };
 
+export type VoteWithDetails = {
+  id: string;
+  created_at: string;
+  user_id: string;
+  youtuber_id: string;
+  youtuber: YouTuber;
+  user: Pick<User, "id" | "name" | "email" | "image_url">;
+};
+
+export type YouTuberWithVoteDetails = YouTuber & {
+  votes: Array<{
+    id: string;
+    created_at: string;
+    user: Pick<User, "id" | "name" | "email" | "image_url">;
+  }>;
+};
+
 export type User = {
   id: string;
   created_at: string;
@@ -60,15 +77,29 @@ export async function hasUserVoted(
   return !!data;
 }
 
-// Get all YouTubers sorted by vote count
+// Get all YouTubers sorted by vote count (calculated from votes table)
 export async function getYouTubers(): Promise<YouTuber[]> {
-  const { data, error } = await supabase
-    .from("youtubers")
-    .select("*")
-    .order("vote_count", { ascending: false });
+  const { data, error } = await supabase.from("youtubers").select(`
+      id,
+      created_at,
+      name,
+      channel_url,
+      image_url,
+      description,
+      vote_count:votes!youtuber_id(count)
+    `);
 
   if (error) throw error;
-  return data || [];
+
+  // Transform the data to flatten vote_count and sort by vote count
+  const transformedData = (data || [])
+    .map((youtuber) => ({
+      ...youtuber,
+      vote_count: youtuber.vote_count?.[0]?.count || 0,
+    }))
+    .sort((a, b) => b.vote_count - a.vote_count);
+
+  return transformedData;
 }
 
 // Get a specific YouTuber
@@ -102,20 +133,12 @@ export async function voteForYouTuber(
     return { success: false, error: "You have reached the maximum of 3 votes" };
   }
 
-  // Add vote and increment vote_count
+  // Add vote (vote count will be calculated dynamically)
   const { error: voteError } = await supabase
     .from("votes")
     .insert([{ user_id: userId, youtuber_id: youtuberId }]);
 
   if (voteError) return { success: false, error: "Failed to save vote" };
-
-  // Update the vote count
-  const { error: updateError } = await supabase.rpc("increment_vote_count", {
-    youtuber_id: youtuberId,
-  });
-
-  if (updateError)
-    return { success: false, error: "Failed to update vote count" };
 
   return { success: true };
 }
@@ -129,6 +152,222 @@ export async function getUserVotes(userId: string): Promise<string[]> {
 
   if (error) return [];
   return data.map((vote) => vote.youtuber_id);
+}
+
+// Get user's votes with full details (joined with YouTuber data)
+export async function getUserVotesWithDetails(
+  userId: string
+): Promise<VoteWithDetails[]> {
+  const { data, error } = await supabase
+    .from("votes")
+    .select(
+      `
+      id,
+      created_at,
+      user_id,
+      youtuber_id,
+      youtubers (
+        id,
+        created_at,
+        name,
+        channel_url,
+        image_url,
+        description,
+        vote_count
+      ),
+      users (
+        id,
+        name,
+        email,
+        image_url
+      )
+    `
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user votes with details:", error);
+    return [];
+  }
+
+  // Transform the data to match our type structure
+  const transformedData =
+    data?.map((vote) => ({
+      id: vote.id,
+      created_at: vote.created_at,
+      user_id: vote.user_id,
+      youtuber_id: vote.youtuber_id,
+      youtuber: (Array.isArray(vote.youtubers)
+        ? vote.youtubers[0]
+        : vote.youtubers) as YouTuber,
+      user: (Array.isArray(vote.users) ? vote.users[0] : vote.users) as Pick<
+        User,
+        "id" | "name" | "email" | "image_url"
+      >,
+    })) || [];
+
+  return transformedData;
+}
+
+// Get all votes for a specific YouTuber with user details
+export async function getYouTuberVotes(
+  youtuberId: string
+): Promise<VoteWithDetails[]> {
+  const { data, error } = await supabase
+    .from("votes")
+    .select(
+      `
+      id,
+      created_at,
+      user_id,
+      youtuber_id,
+      youtubers (
+        id,
+        created_at,
+        name,
+        channel_url,
+        image_url,
+        description,
+        vote_count
+      ),
+      users (
+        id,
+        name,
+        email,
+        image_url
+      )
+    `
+    )
+    .eq("youtuber_id", youtuberId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching YouTuber votes:", error);
+    return [];
+  }
+
+  // Transform the data to match our type structure
+  const transformedData =
+    data?.map((vote) => ({
+      id: vote.id,
+      created_at: vote.created_at,
+      user_id: vote.user_id,
+      youtuber_id: vote.youtuber_id,
+      youtuber: (Array.isArray(vote.youtubers)
+        ? vote.youtubers[0]
+        : vote.youtubers) as YouTuber,
+      user: (Array.isArray(vote.users) ? vote.users[0] : vote.users) as Pick<
+        User,
+        "id" | "name" | "email" | "image_url"
+      >,
+    })) || [];
+
+  return transformedData;
+}
+
+// Get YouTubers with their vote details
+export async function getYouTubersWithVoteDetails(): Promise<
+  YouTuberWithVoteDetails[]
+> {
+  const { data, error } = await supabase
+    .from("youtubers")
+    .select(
+      `
+      id,
+      created_at,
+      name,
+      channel_url,
+      image_url,
+      description,
+      vote_count,
+      votes (
+        id,
+        created_at,
+        users (
+          id,
+          name,
+          email,
+          image_url
+        )
+      )
+    `
+    )
+    .order("vote_count", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching YouTubers with vote details:", error);
+    return [];
+  }
+
+  // Transform the data to match our type structure
+  const transformedData =
+    data?.map((youtuber) => ({
+      ...youtuber,
+      votes: youtuber.votes.map((vote) => ({
+        id: vote.id,
+        created_at: vote.created_at,
+        user: (Array.isArray(vote.users) ? vote.users[0] : vote.users) as Pick<
+          User,
+          "id" | "name" | "email" | "image_url"
+        >,
+      })),
+    })) || [];
+
+  return transformedData;
+}
+
+// Get all votes with full details (admin function)
+export async function getAllVotesWithDetails(): Promise<VoteWithDetails[]> {
+  const { data, error } = await supabase
+    .from("votes")
+    .select(
+      `
+      id,
+      created_at,
+      user_id,
+      youtuber_id,
+      youtubers (
+        id,
+        created_at,
+        name,
+        channel_url,
+        image_url,
+        description,
+        vote_count
+      ),
+      users (
+        id,
+        name,
+        email,
+        image_url
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching all votes with details:", error);
+    return [];
+  }
+
+  // Transform the data to match our type structure
+  const transformedData =
+    data?.map((vote) => ({
+      id: vote.id,
+      created_at: vote.created_at,
+      user_id: vote.user_id,
+      youtuber_id: vote.youtuber_id,
+      youtuber: (Array.isArray(vote.youtubers)
+        ? vote.youtubers[0]
+        : vote.youtubers) as YouTuber,
+      user: (Array.isArray(vote.users) ? vote.users[0] : vote.users) as Pick<
+        User,
+        "id" | "name" | "email" | "image_url"
+      >,
+    })) || [];
+
+  return transformedData;
 }
 
 // User management functions
