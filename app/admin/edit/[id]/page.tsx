@@ -14,14 +14,11 @@ export const metadata = {
   description: "Edit a YouTuber on the VoteYT platform",
 };
 
-// Correctly type the params for Next.js App Router
-type PageProps = {
-  params: {
-    id: string;
-  };
-};
-
-export default async function EditYouTuber({ params }: PageProps) {
+export default async function EditYouTuber({
+  params,
+}: {
+  params: { id: string };
+}) {
   const session = await auth();
 
   // Check if user is authenticated and has admin rights
