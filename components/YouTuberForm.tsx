@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase, uploadImage } from "@/lib/supabase";
 import type { YouTuber } from "@/lib/supabase";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -34,15 +34,36 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Channel URL is required" })
     .url({ message: "Please enter a valid URL" }),
-  image_url: z
-    .string()
-    .url({ message: "Please enter a valid URL" })
+  image: z
+    .any()
     .optional()
-    .or(z.literal("")),
+    .refine(
+      (files) => {
+        if (!files || files.length === 0) return true;
+        const file = files[0];
+        return file.size <= 5 * 1024 * 1024; // 5MB limit
+      },
+      { message: "File size must be less than 5MB" }
+    )
+    .refine(
+      (files) => {
+        if (!files || files.length === 0) return true;
+        const file = files[0];
+        return ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(
+          file.type
+        );
+      },
+      { message: "Only JPEG, PNG, and WebP images are allowed" }
+    ),
   description: z.string().optional().or(z.literal("")),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  name: string;
+  channel_url: string;
+  image?: unknown; // File input value
+  description?: string;
+};
 
 export default function YouTuberForm({
   youtuber,
@@ -61,10 +82,21 @@ export default function YouTuberForm({
     defaultValues: {
       name: youtuber?.name || "",
       channel_url: youtuber?.channel_url || "",
-      image_url: youtuber?.image_url || "",
       description: youtuber?.description || "",
     },
   });
+
+  // Type guard to check if value is FileList-like
+  const isFileListLike = (
+    value: unknown
+  ): value is { length: number; [index: number]: File } => {
+    if (typeof value !== "object" || value === null) {
+      return false;
+    }
+
+    const obj = value as Record<string, unknown>;
+    return "length" in obj && typeof obj.length === "number" && obj.length > 0;
+  };
 
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
@@ -72,16 +104,62 @@ export default function YouTuberForm({
     setMessage(null);
 
     try {
+      let imageUrl: string | null = null;
+
+      // Handle image upload if a file is selected
+      if (data.image && isFileListLike(data.image)) {
+        const file = data.image[0];
+
+        try {
+          // Upload the image (everyone is allowed since policies are permissive)
+          imageUrl = await uploadImage(file);
+          console.log("imageUrl", imageUrl);
+          if (!imageUrl) {
+            throw new Error("Failed to upload image - upload returned null");
+          }
+        } catch (uploadError) {
+          console.log("Upload error details:", uploadError);
+
+          if (uploadError instanceof Error) {
+            if (uploadError.message.includes("row-level security policy")) {
+              throw new Error(
+                "Permission denied: Please ensure storage policies are set up correctly. " +
+                  "Contact administrator if this persists."
+              );
+            } else if (uploadError.message.includes("JWT")) {
+              throw new Error(
+                "Authentication error: Please sign out and sign back in, then try again."
+              );
+            } else {
+              throw new Error(`Upload failed: ${uploadError.message}`);
+            }
+          } else {
+            throw new Error("Failed to upload image - unknown error");
+          }
+        }
+      }
+
       if (isEditing && youtuber) {
         // Update existing YouTuber
+        const updateData: {
+          name: string;
+          channel_url: string;
+          description: string | null;
+          image_url?: string;
+        } = {
+          name: data.name,
+          channel_url: data.channel_url,
+          description: data.description || null,
+        };
+
+        // Only update image_url if a new image was uploaded
+        if (imageUrl) {
+          updateData.image_url = imageUrl;
+        }
+
         const { error } = await supabase
           .from("youtubers")
-          .update({
-            name: data.name,
-            channel_url: data.channel_url,
-            image_url: data.image_url || null,
-            description: data.description || null,
-          })
+          .update(updateData)
           .eq("id", youtuber.id);
 
         if (error) throw error;
@@ -96,7 +174,7 @@ export default function YouTuberForm({
           {
             name: data.name,
             channel_url: data.channel_url,
-            image_url: data.image_url || null,
+            image_url: imageUrl,
             description: data.description || null,
           },
         ]);
@@ -107,7 +185,6 @@ export default function YouTuberForm({
         form.reset({
           name: "",
           channel_url: "",
-          image_url: "",
           description: "",
         });
 
@@ -178,18 +255,22 @@ export default function YouTuberForm({
 
           <FormField
             control={form.control}
-            name="image_url"
-            render={({ field }) => (
+            name="image"
+            render={({ field: { onChange, ...field } }) => (
               <FormItem>
-                <FormLabel>Image URL</FormLabel>
+                <FormLabel>Image</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="https://example.com/image.jpg"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={(e) => onChange(e.target.files)}
                     {...field}
+                    value={undefined}
                   />
                 </FormControl>
                 <FormDescription>
-                  Leave empty to use a default image
+                  Upload an image (JPEG, PNG, or WebP). Maximum file size: 5MB.
+                  Leave empty to keep existing image.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
